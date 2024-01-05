@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import json
 
-path = "C:/Users/Monter/Projects/LH_Project/Data/"
+# path = "C:/Users/Monter/Projects/LH_Project/Data/"
+path = "C:/Users/VR-Lab/Documents/Projects/LH_Project/Data/"
 
 # User-defined settings
 Participant_ID = input("Enter Participant ID: ")
@@ -12,7 +13,7 @@ Condition = input("Enter Condition: ")
 Trial = input("Enter Trial: ")
 
 # Setup for serial communication
-ser = serial.Serial('COM5', 115200, timeout=1)
+ser = serial.Serial('COM6', 115200, timeout=1)
 
 # Plot setup
 plt.ion()  # Interactive mode on for dynamic updating of plot
