@@ -1,19 +1,60 @@
 import socket
+import time 
 
 UDP_IP = "127.0.0.1"
-UDP_PORT = 7779
+UDP_PORT = 8008
 
 sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
 sock.bind((UDP_IP, UDP_PORT))
+sock.setblocking(0)  # Set socket to non-blocking mode
 
 try:
     while True:
-        data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-        print("received message: %s" % data)
+        try:
+            data, addr = sock.recvfrom(1024)  # buffer size is 1024 bytes
+            message = data.decode('utf-8').split('\x00', 1)[0]
+            print("received message:", message)
+        except BlockingIOError:
+            # No data received, proceed with other tasks
+            # print("No data received!!")
+            pass
+
+        print("Rest of code!!")
+
+        # Here you can continue with the rest of your loop, for example, reading from a serial port
+        # Example: print("Doing other tasks")
+        # Remember to include a short sleep to prevent this loop from consuming too much CPU
+        time.sleep(0.01)  # Adjust the sleep time as needed for your application
+
 except KeyboardInterrupt:
     sock.close()
-    pass
+
+
+
+
+
+
+
+# try:
+#     while True:
+#         data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+#         # Decode byte data to string using UTF-8 encoding, then split by null byte and take the first part
+#         message = data.decode('utf-8').split('\x00', 1)[0]
+#         print("Experimental_Phases:", message)
+# except KeyboardInterrupt:
+#     sock.close()
+#     pass
+
+
+
+# try:
+#     while True:
+#         data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+#         print("received message: %s" % data)
+# except KeyboardInterrupt:
+#     sock.close()
+#     pass
 
 
 # import serial

@@ -3,6 +3,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import json
+import time 
+import socket
+
+UDP_IP = "127.0.0.1"
+UDP_PORT = 8008
+sock = socket.socket(socket.AF_INET, # Internet
+                     socket.SOCK_DGRAM) # UDP
+sock.bind((UDP_IP, UDP_PORT))
+sock.setblocking(0)  # Set socket to non-blocking mode
+
 
 # path = "C:/Users/Monter/Projects/LH_Project/Data/"
 path = "C:/Users/VR-Lab/Documents/Projects/LH_Project/Data/"
@@ -39,26 +49,73 @@ def update_plot():
 
 # Start capturing data
 start_time = datetime.now()
-while (datetime.now() - start_time).seconds < 30:
-    line = ser.readline()
-    if line:
-        try:
-            val = line.decode("unicode_escape")
-            vals = val.split(',')
-            heart_rate, gsr_response = map(int, vals[:2]) 
-            elapsed_time = (datetime.now() - start_time).total_seconds()
-            tmpDF = pd.DataFrame({'heart_rate': [heart_rate], 
-                                  'gsr_response': [gsr_response], 
-                                  'time': [elapsed_time]})
-            data = pd.concat([data, tmpDF])
+trialDuration = 600 # 7.5 mins
+unreal_message = "startNow"
+unreal_str = "startNow"
 
-            if len(data) % 10 == 0:
-                update_plot()
-        except ValueError:
-            pass  # Ignore malformed data
+try:
+    while (datetime.now() - start_time).seconds < trialDuration:
+        line = ser.readline()
+        if line:
+            try:
+                try:
+                    msg, addr = sock.recvfrom(1024)  # buffer size is 1024 bytes
+                    unreal_message = msg.decode('utf-8').split('\x00', 1)[0]
+                    unreal_message = unreal_message[1:]
+                    unreal_str = str(unreal_message)
+                    print("Phase: ", unreal_str)
 
-# Closing serial port
-ser.close()
+                except BlockingIOError: 
+                    unreal_str = unreal_str
+                    # No data received, proceed with other tasks
+                    pass
+
+                val = line.decode("unicode_escape")
+                vals = val.split(',')
+                heart_rate, gsr_response = map(int, vals[:2]) 
+                elapsed_time = (datetime.now() - start_time).total_seconds()
+
+                # print('Heartrate: ', unreal_str)
+
+                tmpDF = pd.DataFrame({'heart_rate': [heart_rate], 
+                                    'gsr_response': [gsr_response], 
+                                    'time': [elapsed_time],
+                                    'phase' : [unreal_str]})
+                
+                data = pd.concat([data, tmpDF])
+
+                if len(data) % 100 == 0:
+                    update_plot()
+
+            except ValueError:
+                pass  # Ignore malformed data
+
+except KeyboardInterrupt:
+    sock.close() # Closing the socket 
+    ser.close() # Closing serial port
+
+    # Adding extra columns
+    data['Participant_ID'] = Participant_ID
+    data['Condition'] = Condition
+    data['Trial'] = Trial
+
+    # Save to JSON
+    current_time = datetime.now().strftime("%d%m%y_%H%M%S")
+    filename = f"ptxid_{Participant_ID}_condition_{Condition}_trial_{Trial}_time_{current_time}.json"
+    # data.to_json(path + filename, orient='records')
+
+    # Convert DataFrame to a dictionary with column headers as keys and values as lists
+    data_dict = {col: data[col].tolist() for col in data.columns}
+
+    # Save this dictionary as JSON
+    with open(path + filename, 'w') as file:
+        json.dump(data_dict, file)
+
+    # Notify the user
+    print(f"Data capture complete. Data saved to {filename}")
+
+
+
 
 # Adding extra columns
 data['Participant_ID'] = Participant_ID
