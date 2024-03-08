@@ -49,7 +49,7 @@ def update_plot():
 
 # Start capturing data
 start_time = datetime.now()
-trialDuration = 600 # 7.5 mins
+trialDuration = 600 # 10 mins
 unreal_message = "startNow"
 unreal_str = "startNow"
 
@@ -113,7 +113,6 @@ except KeyboardInterrupt:
 
     # Notify the user
     print(f"Data capture complete. Data saved to {filename}")
-
 
 
 
