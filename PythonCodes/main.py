@@ -65,6 +65,9 @@ try:
                     unreal_str = str(unreal_message)
                     print("Phase: ", unreal_str)
 
+                    if "experiment_end" in unreal_str:
+                        break 
+
                 except BlockingIOError: 
                     unreal_str = unreal_str
                     # No data received, proceed with other tasks
